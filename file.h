@@ -7,6 +7,7 @@ void touch(const char *filename);
 void cat(const char *filename);
 void grep(const char *filename,const char *word,const int mode);
 void copyfile(const char *filename);
+void renamefile(const char *filename,const char *newfilename);
 
 
 #endif

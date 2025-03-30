@@ -37,7 +37,7 @@ int iswhite(int c);
 int gettoken(const char *line,char argv[MAXARG][MAXLINE]);
 int lower(const char c);
 int len(const char *line);
-int checkword(const char *s1,const char *s2);
+int checkword(const char *s1,const char *s2,const int mode);
 int whatindex(const char *line,const char *word,const int mode);
 int whatindexchar(const char *line,const char c,const int mode);
 int compare(const char *s1,const char *s2);

@@ -31,17 +31,17 @@ int main(void){
 
         if(argc==0)
             continue;
-        
-        if(Syntaxerror(argv[0]))
-            continue;
 
         if(block(argv))
+            continue;
+
+        if(Syntaxerror(argv[0]))
             continue;
         
         int MagicNumber = 0;
         struct Commandnum *pt = ALLcommands;
         while((pt->command)!=NULL){
-            if(checkword(pt->command,argv[0])){
+            if(checkword(pt->command,argv[0],0)){
                 MagicNumber = pt->number;
                 break;
             }
@@ -66,7 +66,7 @@ int main(void){
             #endif
             if(argc>1)
                 printf("\tNo command accepted after '%s'\n\n",argv[0]);
-            if(checkword(argv[0],"cls"))
+            if(checkword(argv[0],"cls",0))
                 addhistory("cls",commandhistory);
             else
                 addhistory("clear",commandhistory);
@@ -74,11 +74,11 @@ int main(void){
         }
         else if(MagicNumber==3){ // echo
             if(argc>1){
-                if(checkword(argv[1],"on")){
+                if(checkword(argv[1],"on",0)){
                     echoflag = 1;
                     addhistory("echo on",commandhistory);
                 }
-                else if(checkword(argv[1],"off")){
+                else if(checkword(argv[1],"off",0)){
                     addhistory("echo off",commandhistory);
                     echoflag = 0;
                 }
@@ -119,7 +119,7 @@ int main(void){
             }
             else
                 printf("\tInvalid option: %s\n\n", argv[1]);
-            if(checkword(argv[0],"dir"))
+            if(checkword(argv[0],"dir",0))
                 addhistory("dir",commandhistory);
             else
                 addhistory("ls",commandhistory);
@@ -181,10 +181,8 @@ int main(void){
         }
         else if(MagicNumber==10){ // grep/searchfile
             if(argc==1){
-                printf("\tUsage : search for a word in a file 'NOT CASE SENSITIVE'\n");
-                printf("\tgrep/searchfile [word] [filename]\n");
-                printf("\tsearch for a word in a file 'CASE SENSITIVE'\n");
-                printf("\tgrep/searchfile -cs [word] [filename]\n\n");
+                printf("\tUsage : search for a word in a file\n");
+                printf("\tgrep/searchfile [word] [filename]\n\n");
             }
             else if(argc==2){
                 printf("\t%s missing argument\n\n",argv[0]);
@@ -192,19 +190,9 @@ int main(void){
             else if(argc==3){
                 if(!isvalid(argv[2])) {
                     printf("\tInvalid filename. Avoid spaces/special characters.\n\n");
-                } else {
-                    grep(argv[2], argv[1], 0);
-                }
-            }
-            else if(argc==4){
-                if(checkword(argv[1], "-cs")){
-                    if(!isvalid(argv[3])) {
-                        printf("\tInvalid filename. Avoid spaces/special characters.\n\n");
-                    } else {
-                        grep(argv[3], argv[2], 1);
-                    }
-                } else {
-                    printf("\tInvalid option: %s\n\n", argv[1]);
+                } 
+                else {
+                    grep(argv[2], argv[1], CSmode);
                 }
             }
             else {
@@ -228,14 +216,14 @@ int main(void){
         else if(MagicNumber==13){ // game
             if(argc==1)
                 printf("\tAvailable games : GuessMyAge\n\n");
-            else if(checkword(argv[1],"spacegame")){
+            else if(checkword(argv[1],"spacegame",0)){
                 #ifdef _WIN32
                     system("cls");
                 #else
                     system("clear");
                 #endif
             }
-            else if(checkword(argv[1],"guessmyage")){ // bulshit game
+            else if(checkword(argv[1],"guessmyage",0)){ // bulshit game
                 GuessMyAge();
             }
             else{
@@ -291,7 +279,7 @@ int main(void){
             addhistory("man",commandhistory);
             continue;
         }*/
-        else if(MagicNumber==19){
+        else if(MagicNumber==19){ // showversion
             if(argc==1)
                 showversion();
             else
@@ -299,16 +287,16 @@ int main(void){
             addhistory("version",commandhistory);
             continue;
         }
-        else if(MagicNumber==20){
+        else if(MagicNumber==20){ // clearhistory
             if(argc==1)
                 clearhistory(commandhistory);
             else
                 printf("No commands accepted after 'clearhistory");
             continue;
         }
-        else if(MagicNumber==21){
+        else if(MagicNumber==21){ // cp
             if(argc==1){
-                printf("Copys a file \n\tcp [filename1] [filename2] ...\n\tfilename --> copy-filename\n\n");
+                printf("\tCopys a file \n\tcp [filename1] [filename2] ...\n\tfilename --> copy-filename\n\n");
             }
             else{
                 for(int i = 1;i<argc;i++)
@@ -317,6 +305,77 @@ int main(void){
             addhistory("cp",commandhistory);
             continue;
         }
+        else if(MagicNumber==22){ // csmode
+            if(argc==1){
+                if(CSmode==1)
+                    printf("\tCase Sensitive Mode is on\n\n");
+                else
+                    printf("\tCase Sensitive Mode is off\n\n");
+                printf("\tDo you want to turn Case Sensitive Mode ON [Y/N] ? ");
+                while(1){
+                    char ans;
+                    scanf("%c",&ans);
+                    if(lower(ans)=='y'){
+                        CSmode = 1;
+                        break;
+                    }
+                    if(lower(ans)=='n'){
+                        CSmode = 0;
+                        break;
+                    }
+                }
+            }
+            else if(argc==2){
+                if(checkword(argv[1],"on",0)){
+                    CSmode = 1;
+                    printf("\tCase Sensitive Mode is now on!!\n\tCommands are not Captalized!\n\n");
+                }
+                else if(checkword(argv[1],"off",0)){
+                    CSmode = 0;
+                    printf("\tCase Sensitive Mode is now on!!\n\n");
+                }
+                else{
+                    printf("\t%s Not defined!\n\n",argv[1]);
+                }
+            }
+            addhistory("csmode",commandhistory);
+            continue;
+        }
+        else if(MagicNumber==23){ //
+            if(argc==1){
+                printf("\tRenames file ");
+                printf("(SAFE MODE!!! we only create a newfile and put contents of old file to it!)");
+                printf("\n\tren [oldfile] [newfile]\n\n");   
+            }
+            else if(argc==2)
+                printf("\tmissing ren argument\n\n");
+            else if(argc==3){
+                renamefile(argv[1],argv[2]);
+            }
+            else
+                printf("\tError Not accepted %s\n\n",argv[3]);
+            addhistory("ren",commandhistory);
+            continue;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     return 0;

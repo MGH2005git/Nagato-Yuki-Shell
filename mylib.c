@@ -27,7 +27,8 @@ struct Commanddef help[] = {
     {"version","Displays information about this shell"},
     {"clearhistory","clears command history"},
     {"cp","Copys a file \n\tcp [filename1] [filename2] ...\n\tfilename --> copy-filename"},
-    {"cs","Change shell CaseSensitive mode 'on' or 'off' \n\tcs on | cs off"},
+    {"csmode","Change shell Case Sensitive mode 'on' or 'off' \n\tcsmode on | csmode off"},
+    {"ren","Renames file (SAFE MODE!!! we only create a newfile and put contents of old file to it!)\n\tren [oldfile] [newfile]"},
     {NULL, NULL}
 };
 
@@ -38,7 +39,7 @@ struct Commandnum ALLcommands[] = {
     {"touch",9}, {"grep",10}, {"searchfile",10}, {"time",11},
     {"whoami",12}, {"game",13}, {"history",14}, {"help",15},
     {"list",16},{"memoryinfo",17},{"man",18},{"version",19},
-    {"clearhistory",20},{"cp",21},{"cs",22},
+    {"clearhistory",20},{"cp",21},{"csmode",22},{"ren",23},
     {NULL,0}
 };
 
@@ -108,14 +109,23 @@ int len(const char *line){
     return i;
 }
 
-int checkword(const char *s1,const char *s2){
+int checkword(const char *s1,const char *s2,const int mode){
     if(len(s1)!=len(s2))
         return 0;
     int i;
-    for(i=0;s1[i]!='\0';i++){
-        if(lower(s1[i])!=lower(s2[i]))
-            return 0;
+    if(mode){
+        for(i=0;s1[i]!='\0';i++){
+            if((s1[i])!=(s2[i]))
+                return 0;
+        }
     }
+    else{
+        for(i=0;s1[i]!='\0';i++){
+            if(lower(s1[i])!=lower(s2[i]))
+                return 0;
+        }
+    }
+    
     return 1;
 }
 
@@ -194,13 +204,20 @@ int compare(const char *s1,const char *s2){
 }
 
 int Syntaxerror(const char *command){
-    struct Commandnum *pt = ALLcommands;
-    while((pt->command)!=NULL){
-        if(compare(command,pt->command)){
-            printf("\tSyntax error did you mean '%s'?\n\n",pt->command);
+    struct Commandnum *pt1 = ALLcommands;
+    while((pt1->command)!=NULL){
+        if(checkword(command,pt1->command,0)){
+            return 0;
+        }
+        pt1++;
+    }
+    struct Commandnum *pt2 = ALLcommands;
+    while((pt2->command)!=NULL){
+        if(compare(command,pt2->command)){
+            printf("\tSyntax error did you mean '%s'?\n\n",pt2->command);
             return 1;
         }
-        pt++;
+        pt2++;
     }
     return 0;
 }
@@ -219,7 +236,7 @@ void clearstr(char *s){
 void addhistory(const char *command,char commandhistory[HISTORY][MAXARG]){
     int i,j;
     for(i=0;i<HISTORY;i++){
-        if(checkword(command,commandhistory[i]))
+        if(checkword(command,commandhistory[i],0))
             return;
     }
     for(j = 0;j<HISTORY;j++){
@@ -269,7 +286,7 @@ void showlist(void) {
 void showversion(void){
     welcome();
     printf("\tLast update > 2025-3-30\n\n");
-    printf("\t YUKI.N> -- Version_1.0\n\n");
+    printf("\t YUKI.N> -- Version_1.1\n\n");
 }
 
 int block(const char argv[MAXARG][MAXLINE]){
@@ -282,7 +299,7 @@ int block(const char argv[MAXARG][MAXLINE]){
     };
     for(int i = 0;argv[i][0]!='\0';i++){
         for (int j=0;blockedcommands[j]!=NULL;j++){
-            if(checkword(argv[i],blockedcommands[j])){
+            if(checkword(argv[i],blockedcommands[j],0)){
                 printf("\tcommand '%s' is blocked!\n\n",argv[i]);
                 return 1;
             }

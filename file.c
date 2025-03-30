@@ -27,13 +27,13 @@ int isvalid(const char *filename){
 int isvalidtype(char *filename,const char *tag){
     if(!isvalid(filename))
         return 0;
-    if(whatindex(filename,".",0)<0)
+    if(whatindexchar(filename,'.',0)<0)
         return 0;
     char *p = filename;
-    int index = whatindex(filename,".",0);
+    int index = whatindexchar(filename,'.',0);
     p += index;
     p++;
-    if(checkword(p,tag))
+    if(checkword(p,tag,1))
         return 1;
     return 0;
 }
@@ -137,7 +137,42 @@ void copyfile(const char *filename){
     
 }
 
+void renamefile(const char *filename,const char *newfilename){
+    if(!isvalid(filename)){
+        printf("\tInvalid filename entered! %s\n\n",filename);
+        return;
+    }
+    if(!isvalid(newfilename)){
+        printf("\tInvalid filename entered! %s\n\n",newfilename);
+        return;
+    }
+    FILE *file;
+    file = fopen(filename,"r");
+    if(file==NULL){
+        printf("\tError Cannot open %s\n\n",filename);
+        return;
+    }
+    FILE *newfile;
+    newfile = fopen(newfilename,"w");
+    if(newfile==NULL){
+        printf("\tFATAL ERROR\n\n");
+        return;
+    }
+    char line[1000];
+    while((fgets(line,1000,file))!=NULL){
+        fputs(line,newfile);
+    }
+    /*if(rename(filename, newfilename) == 0) {       //       FAST OPTION
+        printf("\tSuccessfully renamed '%s' to '%s'\n\n", filename, newfilename);
+    } else {
+        printf("\tError renaming file: ");
+        perror("");  // Print system error message
+        putchar('\n');
+    }*/
+    fclose(file);
+    fclose(newfile);
 
+}
 
 
 
