@@ -23,9 +23,11 @@ struct Commanddef help[] = {
     {"help", "Show this help"},
     {"list", "Display list of commands"},
     {"memoryinfo","Displays memory usage"},
-    {"man [command]","Displays command info"},
+    {"man [command]","Displays complete command info\n\tman [command]"},
     {"version","Displays information about this shell"},
     {"clearhistory","clears command history"},
+    {"cp","Copys a file \n\tcp [filename1] [filename2] ...\n\tfilename --> copy-filename"},
+    {"cs","Change shell CaseSensitive mode 'on' or 'off' \n\tcs on | cs off"},
     {NULL, NULL}
 };
 
@@ -36,7 +38,7 @@ struct Commandnum ALLcommands[] = {
     {"touch",9}, {"grep",10}, {"searchfile",10}, {"time",11},
     {"whoami",12}, {"game",13}, {"history",14}, {"help",15},
     {"list",16},{"memoryinfo",17},{"man",18},{"version",19},
-    {"clearhistory",20},
+    {"clearhistory",20},{"cp",21},{"cs",22},
     {NULL,0}
 };
 
@@ -117,7 +119,7 @@ int checkword(const char *s1,const char *s2){
     return 1;
 }
 
-int whatindex(const char *line,const char *word){
+int whatindex(const char *line,const char *word,const int mode){
     int l1 = len(line);
     int l2 = len(word);
     if(l1<l2)
@@ -125,19 +127,53 @@ int whatindex(const char *line,const char *word){
     int i;
     int j = 0;
     int find = 0;
-    for(i=0;i<=l1-l2;i++){
-        if(lower(line[i])==lower(word[j])){
-            find = 1;
-            for(j=0;j<l2;j++){
-                if(lower(line[i+j])!=lower(word[j])){
-                    find = 0;
-                    break;
+    if(mode==0){
+        for(i=0;i<=l1-l2;i++){
+            if(lower(line[i])==lower(word[j])){
+                find = 1;
+                for(j=0;j<l2;j++){
+                    if(lower(line[i+j])!=lower(word[j])){
+                        find = 0;
+                        break;
+                    }
                 }
+                if(find)
+                    return i;
             }
-            if(find)
-                return i;
         }
     }
+    else{
+        for(i=0;i<=l1-l2;i++){
+            if((line[i])==(word[j])){
+                find = 1;
+                for(j=0;j<l2;j++){
+                    if((line[i+j])!=(word[j])){
+                        find = 0;
+                        break;
+                    }
+                }
+                if(find)
+                    return i;
+            }
+        }
+    }
+    
+    return -1;
+}
+
+int whatindexchar(const char *line,const char c,const int mode){
+    int i;
+    if(mode==0){
+        for(i=0;line[i]!='\0';i++)
+        if(lower(line[i])==lower(c))
+            return i;
+    }
+    else{
+        for(i=0;line[i]!='\0';i++)
+        if((line[i])==(c))
+            return i;
+    }
+    
     return -1;
 }
 
@@ -200,70 +236,6 @@ void addhistory(const char *command,char commandhistory[HISTORY][MAXARG]){
     return;
 }
 
-void catf(const char *filename){
-    if(!is_valid_name(filename)){
-        printf("\tInvalid filename. Avoid spaces/special characters.\n");
-        return;
-    }
-    FILE *file = fopen(filename,"r");
-    if(file == NULL){
-        printf("\t Cannot open file\n");
-        return;
-    }
-    int cf;
-    while((cf = fgetc(file))!=EOF)
-        putchar(cf);
-    fclose(file);
-    return;
-}
-
-void touchfile(const char *filename){
-    if(!is_valid_name(filename)){
-        printf("\tInvalid filename. Avoid spaces/special characters.\n\n");
-        return;
-    }
-    FILE *file = fopen(filename,"a");
-    if(file!=NULL)
-        fclose(file);
-    else
-        printf("\tError cannot touch file %s\n\n",filename);
-}
-
-void grep(const char *filename,const char *word){
-    if(!is_valid_name(filename)){
-        printf("\tInvalid filename. Avoid spaces/special characters.\n\n");
-        return;
-    }
-    FILE *file = fopen(filename,"r");
-    if(file == NULL){
-        printf("\t Cannot open file\n\n");
-        return;
-    }
-    char line[MAXLINE];
-    int count = 1;
-    int i = 0;
-    int cf;
-    while((cf = fgetc(file))!=EOF){
-        if(i<MAXLINE-1)
-            line[i++] = (char)cf;
-        if(cf=='\n'||i==MAXLINE-1){
-            line[i] = '\0';
-            if(whatindex(line,word)>=0){
-                printf("\t%d - %s\n",count,line);
-                count++;
-            }
-            i = 0;
-            clearstr(line);
-        }
-    }
-    if (i > 0) {
-        line[i] = '\0';
-        if (whatindex(line, word) >= 0)
-            printf("\t%d - %s\n",count,line);
-    }
-    fclose(file);
-}
-
 void showhelp(void){
     printf("\n\t===========================Available Commands===========================\n");
 
@@ -292,17 +264,6 @@ void showlist(void) {
         pt++;
     }
     printf("\n\n");
-}
-
-int Correctfile(const char *filename, const char *filetag){
-    int i = whatindex(filename, ".");
-    if (i <= 0)
-        return 0;
-    if (filename[i+1] == '\0' || filename[i+1] == '.')
-        return 0;
-        
-    const char *extension = filename + i + 1;
-    return checkword(extension, filetag);
 }
 
 void showversion(void){
@@ -375,25 +336,7 @@ void display_time(void) { // VIP
     printf("\tCurrent time: %s\n\n", buffer);
 }
 
-int is_valid_name(const char *name) { // VIP
-    if (name[0] == '\0') return 0; // Empty name
-
-    const char forbidden[] = " \t\n;&|*?$<>(){}[]'\"\\"; // Forbidden characters
-    for (int i = 0; name[i] != '\0'; i++) {
-        for (int j = 0; forbidden[j] != '\0'; j++) {
-            if (name[i] == forbidden[j]) {
-                return 0; // Invalid character found
-            }
-        }
-    }
-    return 1; // Valid name
-}
-
 int make_dir(const char *path) { // VIP
-    if (!is_valid_name(path)) {
-        printf("\tInvalid directory name. Avoid spaces/special characters.\n\n");
-        return -1;
-    }
     #ifdef _WIN32
         return _mkdir(path);
     #else

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "mylib.h"
+#include "file.h"
 #include <stdlib.h> // system
 #include <time.h> // showtime
 
@@ -11,6 +12,7 @@ int main(void){
     int echoflag = 1;
     char commandhistory[HISTORY][MAXARG];
     clearhistory(commandhistory);
+    int CSmode = 0;
 
     while(1){
 
@@ -82,7 +84,7 @@ int main(void){
                 }
                 else{
                     int index;
-                    index = whatindex(line,"echo");
+                    index = whatindex(line,"echo",0);
                     index += len("echo");
                     while(iswhite(line[index])&&line[index]!='\0'){
                         index++;
@@ -115,10 +117,8 @@ int main(void){
                 #endif
                 putchar('\n');
             }
-            else{
-                printf("\tInvalid ls option: %s\n\n", argv[1]);
-                printf("\tSupported options: -l\n\n");
-            }
+            else
+                printf("\tInvalid option: %s\n\n", argv[1]);
             if(checkword(argv[0],"dir"))
                 addhistory("dir",commandhistory);
             else
@@ -140,15 +140,15 @@ int main(void){
         else if(MagicNumber==7){ // cat
             if(argc==1) {
                 printf("\tUsage : show file contents\n");
-                printf("\tcat [filename]\n\n");
+                printf("\tcat [filename1] [filename2] ...\n\n");
             }
-            else if(argc==2){
-                catf(argv[1]);
-                putchar('\n');
-                putchar('\n');
+            else {
+                for(int i = 1;i<argc;i++){
+                    printf("\n\t\t%d : %s\n\n",i,argv[i]);
+                    cat(argv[i]);
+                    putchar('\n');
+                }
             }
-            else
-                printf("\tNot accepted : %s\n\n",argv[2]);
             addhistory("cat",commandhistory);
             continue;
         }
@@ -169,34 +169,47 @@ int main(void){
         else if(MagicNumber==9){ // touch
             if(argc==1){
                 printf("\tUsage : create new file\n");
-                printf("\ttouch [filename]\n\n");
+                printf("\ttouch [filename1] [filename2] ...\n\n");
             }
-            else if(argc==2){
-                touchfile(argv[1]);
+            else{
+                for(int i = 1;i<argc;i++){
+                    touch(argv[i]);
+                }
             }
-            else
-                printf("\t Not accepted! : %s\n\n",argv[2]);
             addhistory("touch",commandhistory);
             continue;
         }
         else if(MagicNumber==10){ // grep/searchfile
             if(argc==1){
-                printf("\tUsage : search for a word in a file 'NOT CASESENSITIVE'\n");
-                printf("\tgrep [word] > [filename]\n\n");
+                printf("\tUsage : search for a word in a file 'NOT CASE SENSITIVE'\n");
+                printf("\tgrep/searchfile [word] [filename]\n");
+                printf("\tsearch for a word in a file 'CASE SENSITIVE'\n");
+                printf("\tgrep/searchfile -cs [word] [filename]\n\n");
             }
-            else if(argc==2||argc==3){
-                printf("\t%s missing argument\n",argv[0]);
+            else if(argc==2){
+                printf("\t%s missing argument\n\n",argv[0]);
+            }
+            else if(argc==3){
+                if(!isvalid(argv[2])) {
+                    printf("\tInvalid filename. Avoid spaces/special characters.\n\n");
+                } else {
+                    grep(argv[2], argv[1], 0);
+                }
             }
             else if(argc==4){
-                if(!is_valid_name(argv[3]))
-                    printf("\tInvalid filename. Avoid spaces/special characters.\n\n");
-                else if(checkword(argv[2],">")==0)
-                    printf("\tgrep [word] > [filename]\nmissing >\n\n");
-                else
-                    grep(argv[3],argv[1]);
+                if(checkword(argv[1], "-cs")){
+                    if(!isvalid(argv[3])) {
+                        printf("\tInvalid filename. Avoid spaces/special characters.\n\n");
+                    } else {
+                        grep(argv[3], argv[2], 1);
+                    }
+                } else {
+                    printf("\tInvalid option: %s\n\n", argv[1]);
+                }
             }
-            else
-                printf("\tNot accepted! : %s\n\n",argv[4]);
+            else {
+                printf("\tToo many arguments for %s\n\n", argv[0]);
+            }
             addhistory(argv[0],commandhistory);
             continue;
         }
@@ -267,30 +280,17 @@ int main(void){
             addhistory("memoryinfo",commandhistory);
             continue;
         }
-        else if(MagicNumber==18){ // man
-            struct Commanddef *pt = help;
-            if(argc==1){
-                pt+=17;
-                printf("\t%s\n\n",pt->def);
+        /*else if(MagicNumber==18){ // man
+            if(argc==1)
+                printf("\tDisplays complete command info\n\tman [command]\n\n");
+            else if(argc==2){
+                showmanual(argv[1]);
             }
-            else{
-                int found = 0;
-                while((pt->command)!=NULL){
-                    if(checkword(pt->command,argv[1])){
-                        printf("\t%s\n\t%s\n\n",pt->command,pt->def);
-                        found = 1;
-                        break;
-                    }
-                    pt++;
-                }
-                if(!found)
-                    printf("\tNo such command exists! : %s\n\n",argv[1]);
-            }
-            if(argc>2)
+            else
                 printf("\tNot accepted! %s\n\n",argv[2]);
             addhistory("man",commandhistory);
             continue;
-        }
+        }*/
         else if(MagicNumber==19){
             if(argc==1)
                 showversion();
@@ -304,6 +304,17 @@ int main(void){
                 clearhistory(commandhistory);
             else
                 printf("No commands accepted after 'clearhistory");
+            continue;
+        }
+        else if(MagicNumber==21){
+            if(argc==1){
+                printf("Copys a file \n\tcp [filename1] [filename2] ...\n\tfilename --> copy-filename\n\n");
+            }
+            else{
+                for(int i = 1;i<argc;i++)
+                    copyfile(argv[i]);
+            }
+            addhistory("cp",commandhistory);
             continue;
         }
     }
