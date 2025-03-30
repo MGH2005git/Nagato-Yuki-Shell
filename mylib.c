@@ -37,49 +37,6 @@ struct Commandnum ALLcommands[] = {
     {NULL,0}
 };
 
-struct Compilers Compilerlist[] = {
-    {
-        "gcc",
-        "Compile C file with gcc\n"
-        "\tUsage examples:\n"
-        "\t  gcc [file.c]\n"
-        "\t  gcc [file.c] -o [output]\n"
-        "\t  gcc --version (Display GCC version)\n"
-        "\t  gcc -Wall -Wextra (Enable all warnings)\n"
-        "\n\tCommon flags:\n"
-        "\t  -o [file]   Specify output file\n"
-        "\t  -Wall       Enable all warnings\n"
-        "\t  -g          Add debug information",
-        1
-    },
-    {
-        "clang",
-        "Compile C file with LLVM Clang\n"
-        "\tUsage examples:\n"
-        "\t  clang [file.c]\n"
-        "\t  clang [file.c] -o [output]\n"
-        "\t  clang --version (Display Clang version)\n"
-        "\n\tCommon flags:\n"
-        "\t  -o [file]   Specify output file\n"
-        "\t  -Weverything  Enable all warnings\n"
-        "\t  -fsanitize=address  Enable address sanitizer",
-        2
-    },
-    {
-        "nasm",
-        "Assemble x86 assembly files\n"
-        "\tUsage examples:\n"
-        "\t  nasm -f elf64 file.asm -o output.o\n"
-        "\t  nasm -f win64 file.asm (Windows output)\n"
-        "\n\tCommon formats:\n"
-        "\t  -f elf64    Linux 64-bit ELF\n"
-        "\t  -f win64    Windows 64-bit PE\n"
-        "\t  -f macho64  macOS 64-bit Mach-O",
-        3
-    },
-    {NULL, NULL,0}
-};
-
 /*=======================================================================================================*/
 
 void welcome(void){
@@ -333,23 +290,16 @@ void showlist(void) {
     printf("\n\n");
 }
 
-int Correctfile(const char *filename,const char *filetag){
-    int i = whatindex(filename,".");
-    if(i<=0)
+int Correctfile(const char *filename, const char *filetag){
+    int i = whatindex(filename, ".");
+    if (i <= 0)
         return 0;
-    else if(filename[i+1]=='\0'||filename[i+1]=='.')
+    if (filename[i+1] == '\0' || filename[i+1] == '.')
         return 0;
-    else{
-        const char *ptr;
-        ptr = &filename;
-        ptr += i;
-        ptr++;
-        if(checkword(ptr,filetag))
-            return 1;
-        return 0;
-    }
+        
+    const char *extension = filename + i + 1;
+    return checkword(extension, filetag);
 }
-
 
 /*=======================================================================================================*/
 

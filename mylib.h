@@ -29,14 +29,6 @@ struct Commandnum {
 extern struct Commanddef help[];
 extern struct Commandnum ALLcommands[];
 
-struct Compilers {
-    const char *compiler;
-    const char *description;
-    const unsigned int num;
-};
-
-extern struct Compilers Compilerlist[];
-
 /*=======================================================================================================*/
 
 void welcome(void);

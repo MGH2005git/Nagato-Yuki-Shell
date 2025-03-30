@@ -41,15 +41,8 @@ int main(void){
             }
             pt++;
         }
-        int X = 0;
+
         if(MagicNumber==0){
-            struct Compilers *pt = Compilerlist;
-            while((pt->compiler)!=NULL){
-                if(checkword(pt->compiler,argv[0])){
-                    X = pt->num;
-                    goto compilershandle;
-                }
-            }
             printf("\tInvalid command : %s\n",argv[0]);
             printf("\tType 'help' for allowed commands..\n\n");
             continue;
@@ -87,6 +80,9 @@ int main(void){
                     int index;
                     index = whatindex(line,"echo");
                     index += len("echo");
+                    while(iswhite(line[index])&&line[index]!='\0'){
+                        index++;
+                    }
                     printf("\t%s\n\n",line+index);
                 }
             }
@@ -291,47 +287,6 @@ int main(void){
             addhistory("man",commandhistory);
             continue;
         }
-        /*==================================================================================================================================*/
-        compilershandle:
-        
-        struct Compilers *p = Compilerlist;
-        if(X==1){
-            if(argc==1){
-                printf("\t%s\n\n",p->description);
-                addhistory("gcc",commandhistory);
-                continue;
-            }
-            if(argc==2){
-                if(checkword(argv[1],"--version")){
-                    system("gcc --version");
-                    continue;
-                }
-                else if(Correctfile(argv[1],"c")){
-                    system(line);
-                    continue;
-                }
-                else{
-                    printf("\t pls enter a valid C file name , [filename.c]\n\n");
-                    continue;
-                }
-            }
-            if(argc==3){
-                
-            }
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-        continue;
     }
 
     return 0;
