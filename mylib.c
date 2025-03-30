@@ -24,6 +24,8 @@ struct Commanddef help[] = {
     {"list", "Display list of commands"},
     {"memoryinfo","Displays memory usage"},
     {"man [command]","Displays command info"},
+    {"version","Displays information about this shell"},
+    {"clearhistory","clears command history"},
     {NULL, NULL}
 };
 
@@ -33,19 +35,19 @@ struct Commandnum ALLcommands[] = {
     {"ls",5}, {"cd",6}, {"cat",7}, {"mkdir",8},
     {"touch",9}, {"grep",10}, {"searchfile",10}, {"time",11},
     {"whoami",12}, {"game",13}, {"history",14}, {"help",15},
-    {"list",16},{"memoryinfo",17},{"man",18},
+    {"list",16},{"memoryinfo",17},{"man",18},{"version",19},
+    {"clearhistory",20},
     {NULL,0}
 };
 
 /*=======================================================================================================*/
 
 void welcome(void){
-    printf("\tWelcome to my shell(SAFE MODE)\n");
-    printf("\tThis shell is not case sensitive\n");
-    printf("\tDue to our high SAFETY MODE we do NOT support \"rm\" or any risky commands\n");
+    printf("\tWelcome to Yuki Nagato Shell (SAFE MODE)\n");
+    printf("\tThis Shell is not case sensitive\n");
+    printf("\tDue to (SAFE MODE LOCKED ON) we do NOT support \"rm\" or any risky commands\n");
     printf("\tThis Shell doesn't have access to internet!\n");
-    printf("\tCopyright 2025-3-25 Written by @MGH2005\n");
-    printf("\tLast update > 2025-3-29\n\n");
+    printf("\tCopyright 2025-3-25 Written by @MGH2005git\n\n");
 }
 
 void gline(char *line){
@@ -124,7 +126,7 @@ int whatindex(const char *line,const char *word){
     int j = 0;
     int find = 0;
     for(i=0;i<=l1-l2;i++){
-        if(lower(line[i])==word[j]){
+        if(lower(line[i])==lower(word[j])){
             find = 1;
             for(j=0;j<l2;j++){
                 if(lower(line[i+j])!=lower(word[j])){
@@ -190,8 +192,10 @@ void addhistory(const char *command,char commandhistory[HISTORY][MAXARG]){
             return;
         }
     }
-    for(int t=0;t<HISTORY-1;t++)
+    for(int t=0;t<HISTORY-1;t++){
+        clearstr(commandhistory[t]);
         copys(commandhistory[t],commandhistory[t+1]);
+    }
     copys(commandhistory[HISTORY-1],command);
     return;
 }
@@ -299,6 +303,38 @@ int Correctfile(const char *filename, const char *filetag){
         
     const char *extension = filename + i + 1;
     return checkword(extension, filetag);
+}
+
+void showversion(void){
+    welcome();
+    printf("\tLast update > 2025-3-30\n\n");
+    printf("\t YUKI.N> -- Version_1.0\n\n");
+}
+
+int block(const char argv[MAXARG][MAXLINE]){
+
+    const char *blockedcommands[] = {
+        "rm", "chmod", "chown", "dd", 
+        "wget", "curl", "sudo", "kill",
+        "exec", "source", "shred",
+        NULL
+    };
+    for(int i = 0;argv[i][0]!='\0';i++){
+        for (int j=0;blockedcommands[j]!=NULL;j++){
+            if(checkword(argv[i],blockedcommands[j])){
+                printf("\tcommand '%s' is blocked!\n\n",argv[i]);
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+void clearhistory(char commandhistory[HISTORY][MAXARG]){
+    int i;
+    for(i=0;i<HISTORY;i++){
+        clearstr(commandhistory[i]);
+    }
 }
 
 /*=======================================================================================================*/

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "mylib.h"
-#include <stdlib.h> // showtime
-#include <time.h> // system
+#include <stdlib.h> // system
+#include <time.h> // showtime
 
 int main(void){
 
@@ -10,15 +10,16 @@ int main(void){
     char curdir[MAXLINE];
     int echoflag = 1;
     char commandhistory[HISTORY][MAXARG];
+    clearhistory(commandhistory);
 
     while(1){
 
         currentdirectory(curdir);
 
         if(echoflag)
-            printf(" Shell %s $ ",curdir);
+            printf(" YUKI.N %s > ",curdir);
         else
-            printf(" $ ");
+            printf(" YUKI.N > ");
 
         char line[MAXLINE];
         char argv[MAXARG][MAXLINE];
@@ -30,6 +31,9 @@ int main(void){
             continue;
         
         if(Syntaxerror(argv[0]))
+            continue;
+
+        if(block(argv))
             continue;
         
         int MagicNumber = 0;
@@ -234,7 +238,7 @@ int main(void){
             for(int i = 0;i<HISTORY&&commandhistory[i][0]!='\0'; i++){
                     printf("\t%2d: %s\n", i+1, commandhistory[i]);
             }
-            if(argv[1][0]!='\0'){
+            if(argc>1){
                 printf("\tNo command accepted after 'history'\n");
             }
             putchar('\n');
@@ -285,6 +289,21 @@ int main(void){
             if(argc>2)
                 printf("\tNot accepted! %s\n\n",argv[2]);
             addhistory("man",commandhistory);
+            continue;
+        }
+        else if(MagicNumber==19){
+            if(argc==1)
+                showversion();
+            else
+                printf("No commands accepted after 'version");
+            addhistory("version",commandhistory);
+            continue;
+        }
+        else if(MagicNumber==20){
+            if(argc==1)
+                clearhistory(commandhistory);
+            else
+                printf("No commands accepted after 'clearhistory");
             continue;
         }
     }

@@ -50,6 +50,9 @@ void grep(const char *filename,const char *word);
 void showhelp(void);
 void showlist(void);
 int Correctfile(const char *filename,const char *filetag);
+void showversion(void);
+int block(const char argv[MAXARG][MAXLINE]);
+void clearhistory(char commandhistory[HISTORY][MAXARG]);
 
 /*=======================================================================================================*/
 //VIP
